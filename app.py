@@ -158,14 +158,16 @@ def top_categories():
         # Calculate total revenue
         revenue = conn.execute('''
             SELECT 
-                SUM(total_price_without_vat) AS revenue
+                SUM(po.sale_price * si.quantity_sold) AS revenue
             FROM 
-                Sale
+                SaleItem si
+            JOIN 
+                ProductOption po ON si.barcode_SI_id = po.barcode_id
         ''').fetchone()
         
         return jsonify({
             'categories': [dict(row) for row in categories],
-            'revenue': revenue['revenue'] / 100  # Convert cents to euros
+            'revenue': revenue['revenue'] / 100  # Convert cents to dollars
         })
     except Exception as e:
         print(f"Error: {e}")
