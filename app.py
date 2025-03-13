@@ -87,7 +87,7 @@ def top_products():
         if not conn:
             return "Error!"
         
-        # Get top selling products
+        # Get top 5 selling products
         products = conn.execute('''
             SELECT 
                 p.brand_name AS Brand,
@@ -103,6 +103,7 @@ def top_products():
                 p.product_id, p.brand_name, p.model
             ORDER BY 
                 TotalQuantitySold DESC
+            LIMIT 5
         ''').fetchall()
         
         # Calculate total profit
@@ -133,7 +134,7 @@ def top_categories():
         if not conn:
             return "Error!"
         
-        # Get top selling categories
+        # Get top 5 selling categories
         categories = conn.execute('''
             SELECT 
                 pc.category_name AS Category,
@@ -151,6 +152,7 @@ def top_categories():
                 pc.category_id, pc.category_name
             ORDER BY 
                 TotalQuantitySold DESC
+            LIMIT 5
         ''').fetchall()
         
         # Calculate total revenue

@@ -1,9 +1,15 @@
 import sqlite3
 from datetime import datetime
+import os
 
 def init_db():
+    # Delete existing database if it exists
+    if os.path.exists('store.db'):
+        os.remove('store.db')
+
     # Create database connection
     conn = sqlite3.connect('store.db')
+    conn.row_factory = sqlite3.Row  # Позволяет обращаться к столбцам по имени
     cursor = conn.cursor()
 
     # Create tables
@@ -122,7 +128,6 @@ def init_db():
     cursor.executemany('INSERT INTO PromoCode (code_id, discount_percentage, valid_from, valid_to) VALUES (?, ?, ?, ?)', promo_codes)
 
     # Insert products and their options
-    brands = ['Apple', 'Samsung', 'Sony', 'Dell', 'Lenovo']
     products_data = [
         # Apple products
         ('iPhone 15 Pro', 1, 'Apple', 'APP15P-256', 50, 80000, 99900),
@@ -199,6 +204,20 @@ def init_db():
         (datetime.now(), 3, None, 20, 80000, 16000, 96000)
     ]
     
+    # Sample products to add sales for
+    sale_items_data = [
+        ('APP15P-256', 3, 99900),    # iPhone 15 Pro
+        ('SAM-S24U', 2, 89900),      # Galaxy S24 Ultra
+        ('APP-MBP16', 1, 199900),    # MacBook Pro 16
+        ('DEL-XPS15', 2, 179900),    # Dell XPS 15
+        ('LEN-X1C', 1, 149900),      # ThinkPad X1 Carbon
+        ('SON-XP1V', 2, 94900),      # Sony Xperia 1 V
+        ('APP-IPAD12', 2, 99900),    # iPad Pro 12.9
+        ('SAM-TABS9', 3, 79900),     # Galaxy Tab S9
+        ('APP-WATCH9', 4, 39900),    # Apple Watch Series 9
+        ('SAM-WATCH6', 3, 29900)     # Galaxy Watch 6
+    ]
+    
     for sale in sales:
         cursor.execute('''
             INSERT INTO Sale (sale_date, source_name, code_S_id, tax_rate, 
@@ -208,11 +227,12 @@ def init_db():
         
         sale_id = cursor.lastrowid
         
-        # Add some sale items
-        cursor.execute('''
-            INSERT INTO SaleItem (sale_SI_id, barcode_SI_id, quantity_sold, price_sold_without_vat)
-            VALUES (?, ?, ?, ?)
-        ''', (sale_id, 'APP15P-256', 1, 99900))
+        # Add multiple sale items for each sale
+        for barcode, quantity, price in sale_items_data:
+            cursor.execute('''
+                INSERT INTO SaleItem (sale_SI_id, barcode_SI_id, quantity_sold, price_sold_without_vat)
+                VALUES (?, ?, ?, ?)
+            ''', (sale_id, barcode, quantity, price))
 
     # Commit all changes
     conn.commit()
@@ -220,4 +240,4 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    print("Database initialized successfully!") 
+    print("Database initialized successfully!")
