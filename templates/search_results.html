@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results - {{ brand }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .results-table {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .back-button {
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-button">← Back to Dashboard</a>
+            <h1>Search Results for {{ brand }}</h1>
+        </div>
+
+        <div class="results-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Model</th>
+                        <th>Attribute</th>
+                        <th>Value</th>
+                        <th>Quantity</th>
+                        <th>Wholesale Price</th>
+                        <th>Sale Price</th>
+                        <th>New Price</th>
+                        <th>Change Date</th>
+                        <th>Promo Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.Brand }}</td>
+                        <td>{{ result.Model }}</td>
+                        <td>{{ result.AttributeName }}</td>
+                        <td>{{ result.AttributeValue }}</td>
+                        <td>{{ result.Quantity }}</td>
+                        <td>${{ "%.2f"|format(result.WholesalePrice/100) }}</td>
+                        <td>${{ "%.2f"|format(result.SalePrice/100) }}</td>
+                        <td>${{ "%.2f"|format(result.NewPrice/100) if result.NewPrice else '-' }}</td>
+                        <td>{{ result.ChangeDate if result.ChangeDate else '-' }}</td>
+                        <td>{{ result.PromoCode if result.PromoCode else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 
