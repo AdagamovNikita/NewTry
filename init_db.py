@@ -215,7 +215,10 @@ def init_db():
         ('APP-IPAD12', 2, 99900),    # iPad Pro 12.9
         ('SAM-TABS9', 3, 79900),     # Galaxy Tab S9
         ('APP-WATCH9', 4, 39900),    # Apple Watch Series 9
-        ('SAM-WATCH6', 3, 29900)     # Galaxy Watch 6
+        ('SAM-WATCH6', 3, 29900),    # Galaxy Watch 6
+        ('SAM-BUDSP', 4, 19900),     # Galaxy Buds Pro
+        ('SON-WH1000', 5, 29900),    # Sony WH-1000XM5
+        ('SON-WF1000', 5, 19900)     # Sony WF-1000XM5
     ]
     
     for sale in sales:
