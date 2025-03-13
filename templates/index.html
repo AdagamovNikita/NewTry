@@ -68,6 +68,43 @@
         button:hover {
             background-color: #45a049;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1200px;
+            border-radius: 5px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .modal-table {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +157,54 @@
         </div>
     </div>
 
+    <!-- Product Details Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h2>Top Selling Products - Detailed View</h2>
+            <div class="modal-table">
+                <table id="product-details-table">
+                    <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Sale Price</th>
+                            <th>Total Quantity Sold</th>
+                            <th>Margin %</th>
+                            <th>Supplier</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Details Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCategoryModal()">&times;</span>
+            <h2>Top Selling Categories - Detailed View</h2>
+            <div class="modal-table">
+                <table id="category-details-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Number of Products</th>
+                            <th>Total Quantity Sold</th>
+                            <th>Average Price</th>
+                            <th>Maximum Price</th>
+                            <th>Total Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Function to format currency
         function formatCurrency(amount) {
@@ -127,6 +212,29 @@
                 style: 'currency',
                 currency: 'USD'
             }).format(amount);
+        }
+
+        // Modal elements
+        const productModal = document.getElementById('productModal');
+        const categoryModal = document.getElementById('categoryModal');
+
+        // Close modal functions
+        function closeProductModal() {
+            productModal.style.display = "none";
+        }
+
+        function closeCategoryModal() {
+            categoryModal.style.display = "none";
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target == productModal) {
+                productModal.style.display = "none";
+            }
+            if (event.target == categoryModal) {
+                categoryModal.style.display = "none";
+            }
         }
 
         // Load top products and profit
@@ -165,20 +273,51 @@
                 document.getElementById('revenue-summary').textContent = `Revenue: ${formatCurrency(data.revenue)}`;
             });
 
-        // Placeholder functions for modal windows
+        // Show product details in modal
         function showProductDetails() {
             fetch('/api/product_details')
                 .then(response => response.json())
                 .then(data => {
-                    alert('Product Details:\n' + JSON.stringify(data, null, 2));
+                    const tbody = document.querySelector('#product-details-table tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(product => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${product.Brand}</td>
+                                <td>${product.Model}</td>
+                                <td>${formatCurrency(product.SalePrice/100)}</td>
+                                <td>${product.TotalQuantitySold}</td>
+                                <td>${product.MarginPercentage.toFixed(2)}%</td>
+                                <td>${product.SupplierName}</td>
+                                <td>${product.Phone}</td>
+                                <td>${product.Address}</td>
+                            </tr>
+                        `;
+                    });
+                    productModal.style.display = "block";
                 });
         }
 
+        // Show category details in modal
         function showCategoryDetails() {
             fetch('/api/category_details')
                 .then(response => response.json())
                 .then(data => {
-                    alert('Category Details:\n' + JSON.stringify(data, null, 2));
+                    const tbody = document.querySelector('#category-details-table tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(category => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${category.Category}</td>
+                                <td>${category.NumberOfProducts}</td>
+                                <td>${category.TotalQuantitySold}</td>
+                                <td>${formatCurrency(category.AverageProductPrice/100)}</td>
+                                <td>${formatCurrency(category.MaximumProductPrice/100)}</td>
+                                <td>${formatCurrency(category.TotalRevenue/100)}</td>
+                            </tr>
+                        `;
+                    });
+                    categoryModal.style.display = "block";
                 });
         }
     </script>
