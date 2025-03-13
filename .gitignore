@@ -5,6 +5,9 @@ __pycache__/
 *.so
 .Python
 env/
+venv/
+.env
+.venv
 build/
 develop-eggs/
 dist/
@@ -20,9 +23,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.log
 
 # Virtual Environment
-venv/
 ENV/
 
 # Database
