@@ -44,7 +44,7 @@ def search_brand():
         if not conn:
             return jsonify({"error": "Sorry, there is a server problem :("})
         results = conn.execute('''
-            SELECT 
+            SELECT
                 p.brand_name AS Brand,
                 p.model AS Model,
                 pa.attribute_name AS AttributeName,
@@ -54,7 +54,7 @@ def search_brand():
                 po.sale_price AS SalePrice,
                 ph.new_price AS NewPrice,
                 ph.change_date AS ChangeDate,
-                pc.code_id AS PromoCode
+                MAX(pc.code_id) AS PromoCode
             FROM 
                 Product p
             JOIN 
@@ -70,6 +70,9 @@ def search_brand():
             LEFT JOIN 
                 PromoCode pc ON s.code_S_id = pc.code_id
             WHERE p.brand_name = ?
+            GROUP BY 
+                p.brand_name, p.model, pa.attribute_name, pa.attribute_value, po.quantity, 
+                po.wholesale_price, po.sale_price, ph.new_price, ph.change_date
             ORDER BY 
                 p.brand_name, p.model
         ''', (brand,)).fetchall()

@@ -111,9 +111,7 @@ def init_db():
 
 
         promo_codes = [
-            ('SUMMER2024', 15, '2024-06-01', '2024-08-31'),
-            ('WELCOME10', 10, '2024-01-01', '2024-12-31'),
-            ('BLACKFRIDAY', 20, '2024-11-29', '2024-11-30')
+            ('WELCOME10', 10, '2024-01-01', '2024-12-31')
         ]
         cursor.executemany('INSERT INTO PromoCode (code_id, discount_percentage, valid_from, valid_to) VALUES (?, ?, ?, ?)', promo_codes)
 
