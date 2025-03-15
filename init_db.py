@@ -1,7 +1,8 @@
 import sqlite3
 from datetime import datetime
 import random
-
+import time
+random.seed(time.time()) #I need it to set different colors for items in my database.
 
 #these are all the tables I created while looking at my database schema from phase 1.
 def init_db():
@@ -148,6 +149,7 @@ def init_db():
 
 
 #I also did not know about it before as well. lastrowid gives the ID of the last inserted row.
+        colors = ['Black', 'White', 'Silver', 'Blue', 'Red', 'Green']
         for product in products_data:
             cursor.execute('''
                 INSERT INTO Product (model, category_P_id, brand_name)
@@ -158,10 +160,11 @@ def init_db():
                 INSERT INTO ProductOption (product_PO_id, barcode_id, quantity, wholesale_price, sale_price)
                 VALUES (?, ?, ?, ?, ?)
             ''', (product_id, product[3], product[4], product[5], product[6]))
+            random_color = random.choice(colors)
             cursor.execute('''
                 INSERT INTO ProductAttribute (barcode_PA_id, attribute_id, attribute_name, attribute_value)
                 VALUES (?, ?, ?, ?)
-            ''', (product[3], 1, 'Color', 'Black'))
+            ''', (product[3], 1, 'Color', random_color))
             cursor.execute('''
                 INSERT INTO PriceHistory (barcode_PH_id, old_price, new_price, change_date)
                 VALUES (?, ?, ?, datetime('now'))
@@ -174,27 +177,27 @@ def init_db():
 
 
         sales = [
-            (datetime.now(), 1, 'SUMMER2024', 20, 100000, 20000, 120000),
-            (datetime.now(), 2, 'WELCOME10', 20, 150000, 30000, 180000),
-            (datetime.now(), 3, None, 20, 80000, 16000, 96000)
+            (datetime.now(), 'Online', 'SUMMER2024', 20, 100000, 20000, 120000),
+            (datetime.now(), 'Store', 'WELCOME10', 20, 150000, 30000, 180000),
+            (datetime.now(), 'Online', None, 20, 80000, 16000, 96000)
         ]
         
 
 
         sale_items_data = [
-            ('APP15P-256', 3, 99900),    
-            ('SAM-S24U', 2, 89900),      
-            ('APP-MBP16', 1, 199900),    
-            ('DEL-XPS15', 2, 179900),     
-            ('LEN-X1C', 1, 149900),       
-            ('SON-XP1V', 2, 94900),       
-            ('APP-IPAD12', 2, 99900),     
-            ('SAM-TABS9', 3, 79900),      
-            ('APP-WATCH9', 4, 39900),     
-            ('SAM-WATCH6', 3, 29900),     
-            ('SAM-BUDSP', 4, 19900),      
-            ('SON-WH1000', 5, 29900),     
-            ('SON-WF1000', 5, 19900)      
+            ('APP15P-256', 54, 99900),    
+            ('SAM-S24U', 32, 89900),      
+            ('APP-MBP16', 72, 199900),    
+            ('DEL-XPS15', 23, 179900),     
+            ('LEN-X1C', 12, 149900),       
+            ('SON-XP1V', 21, 94900),       
+            ('APP-IPAD12', 13, 99900),     
+            ('SAM-TABS9', 34, 79900),      
+            ('APP-WATCH9', 45, 39900),     
+            ('SAM-WATCH6', 32, 29900),     
+            ('SAM-BUDSP', 45, 19900),      
+            ('SON-WH1000', 54, 29900),     
+            ('SON-WF1000', 18, 19900)      
         ]
         
 
