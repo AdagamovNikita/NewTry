@@ -782,24 +782,17 @@
                 <div class="filters">
                     <form class="chart-filters-form">
                         <div class="custom-select-container">
-                            <div class="custom-select-trigger" id="category-trigger">Select a category</div>
+                            <div class="custom-select-trigger" id="category-trigger">Select Category</div>
                             <div class="custom-select-options" id="category-options"></div>
                             <select name="category" required style="display: none;">
-                                <option value="">Select a category</option>
-                            </select>
-                        </div>
-                        <div class="custom-select-container">
-                            <div class="custom-select-trigger" id="brand-trigger">Select a brand</div>
-                            <div class="custom-select-options" id="brand-options"></div>
-                            <select name="brand" required style="display: none;">
-                                <option value="">Select a brand</option>
+                                <option value="">Select Category</option>
                             </select>
                         </div>
                     </form>
                 </div>
             </div>
             <div class="chart-container">
-                <canvas id="salesChart"></canvas>
+                <div id="salesChart" style="width: 100%; height: 100%;"></div>
             </div>
         </div>
     </div>
@@ -866,6 +859,38 @@
                 minimumFractionDigits: 2
             }).format(amount);
         }
+
+        // Initialize brand selection dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            const brandContainer = document.querySelector('.search-section .custom-select-container');
+            const brandTrigger = brandContainer.querySelector('.custom-select-trigger');
+            const brandOptions = brandContainer.querySelector('.custom-select-options');
+            const brandSelect = brandContainer.querySelector('select');
+            
+            // Toggle dropdown
+            brandTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                brandContainer.classList.toggle('open');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!brandContainer.contains(e.target)) {
+                    brandContainer.classList.remove('open');
+                }
+            });
+            
+            // Handle brand option selection
+            brandOptions.querySelectorAll('.custom-select-option').forEach((option, index) => {
+                option.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const value = this.textContent;
+                    brandTrigger.textContent = value;
+                    brandSelect.value = value;
+                    brandContainer.classList.remove('open');
+                });
+            });
+        });
 
         // Enhanced modal handling
         const productModal = document.getElementById('productModal');
@@ -1059,90 +1084,59 @@
         document.head.appendChild(style);
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectContainer = document.querySelector('.custom-select-container');
-            const selectTrigger = selectContainer.querySelector('.custom-select-trigger');
-            const options = selectContainer.querySelectorAll('.custom-select-option');
-            const hiddenSelect = selectContainer.querySelector('select');
-            
-            // Toggle dropdown
-            selectTrigger.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent event from bubbling up
-                selectContainer.classList.toggle('open');
-                selectTrigger.classList.toggle('open');
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!selectContainer.contains(e.target)) {
-                    selectContainer.classList.remove('open');
-                    selectTrigger.classList.remove('open');
-                }
-            });
-            
-            // Handle option selection
-            options.forEach((option, index) => {
-                option.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Prevent event from bubbling up
-                    const value = this.textContent;
-                    selectTrigger.textContent = value;
-                    selectContainer.classList.remove('open');
-                    selectTrigger.classList.remove('open');
-                    
-                    // Update hidden select value
-                    hiddenSelect.selectedIndex = index + 1; // +1 because of the placeholder option
-                });
-            });
-        });
-    </script>
-    <script>
         // Chart initialization and data handling
         let salesChart = null;
         let selectedCategory = null;
-        let selectedBrand = null;
 
-        // Initialize filters
-        fetch('/api/chart-filters')
-            .then(response => response.json())
-            .then(data => {
-                const categoryOptions = document.getElementById('category-options');
-                const brandOptions = document.getElementById('brand-options');
-                const categorySelect = document.querySelector('select[name="category"]');
-                const brandSelect = document.querySelector('select[name="brand"]');
+        // Initialize filters and setup dropdown handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize chart filters
+            fetch('/api/chart-filters')
+                .then(response => response.json())
+                .then(data => {
+                    const categoryOptions = document.getElementById('category-options');
+                    const categorySelect = document.querySelector('select[name="category"]');
+                    const categoryTrigger = document.getElementById('category-trigger');
+                    const categoryContainer = categoryTrigger.parentElement;
 
-                // Populate categories
-                data.categories.forEach((category, index) => {
-                    const option = document.createElement('div');
-                    option.className = 'custom-select-option';
-                    option.textContent = category.category_name;
-                    option.dataset.id = category.category_id;
-                    option.style.setProperty('--option-index', index);
-                    option.onclick = () => selectCategory(category);
-                    categoryOptions.appendChild(option);
+                    // Populate categories
+                    data.categories.forEach((category, index) => {
+                        const option = document.createElement('div');
+                        option.className = 'custom-select-option';
+                        option.textContent = category.category_name;
+                        option.dataset.id = category.category_id;
+                        option.style.setProperty('--option-index', index);
+                        
+                        // Add click handler for each option
+                        option.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            selectCategory(category);
+                            categoryContainer.classList.remove('open');
+                        });
+                        
+                        categoryOptions.appendChild(option);
 
-                    // Add option to hidden select
-                    const selectOption = document.createElement('option');
-                    selectOption.value = category.category_id;
-                    selectOption.textContent = category.category_name;
-                    categorySelect.appendChild(selectOption);
+                        // Add option to hidden select
+                        const selectOption = document.createElement('option');
+                        selectOption.value = category.category_id;
+                        selectOption.textContent = category.category_name;
+                        categorySelect.appendChild(selectOption);
+                    });
+
+                    // Add click handler for the trigger
+                    categoryTrigger.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        categoryContainer.classList.toggle('open');
+                    });
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', (e) => {
+                        if (!categoryContainer.contains(e.target)) {
+                            categoryContainer.classList.remove('open');
+                        }
+                    });
                 });
-
-                // Populate brands
-                data.brands.forEach((brand, index) => {
-                    const option = document.createElement('div');
-                    option.className = 'custom-select-option';
-                    option.textContent = brand.brand_name;
-                    option.style.setProperty('--option-index', index);
-                    option.onclick = () => selectBrand(brand);
-                    brandOptions.appendChild(option);
-
-                    // Add option to hidden select
-                    const selectOption = document.createElement('option');
-                    selectOption.value = brand.brand_name;
-                    selectOption.textContent = brand.brand_name;
-                    brandSelect.appendChild(selectOption);
-                });
-            });
+        });
 
         // Category selection handler
         function selectCategory(category) {
@@ -1151,241 +1145,129 @@
             const select = document.querySelector('select[name="category"]');
             trigger.textContent = category.category_name;
             select.value = category.category_id;
-            trigger.parentElement.classList.remove('open');
-            updateChart();
-        }
-
-        // Brand selection handler
-        function selectBrand(brand) {
-            selectedBrand = brand;
-            const trigger = document.getElementById('brand-trigger');
-            const select = document.querySelector('select[name="brand"]');
-            trigger.textContent = brand.brand_name;
-            select.value = brand.brand_name;
-            trigger.parentElement.classList.remove('open');
             updateChart();
         }
 
         // Chart update function
         function updateChart() {
-            if (!selectedCategory || !selectedBrand) return;
+            if (!selectedCategory) return;
 
             const formData = new FormData();
             formData.append('category_id', selectedCategory.category_id);
-            formData.append('brand_name', selectedBrand.brand_name);
 
             fetch('/api/sales-data', {
                 method: 'POST',
                 body: formData
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                        return;
-                    }
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
 
-                    const chartDom = document.getElementById('salesChart');
-                    
-                    // Initialize ECharts instance
-                    if (!salesChart) {
-                        salesChart = echarts.init(chartDom);
-                    }
+                const chartDom = document.getElementById('salesChart');
+                
+                // Initialize ECharts instance
+                if (!salesChart) {
+                    salesChart = echarts.init(chartDom);
+                }
 
-                    // Prepare data
-                    const dates = data.map(item => item.date);
-                    const sales = data.map(item => item.sales / 100); // Convert cents to dollars
-                    const quantities = data.map(item => item.quantity);
+                // Prepare data
+                const dates = data.map(item => item.date);
+                const sales = data.map(item => item.sales / 100); // Convert cents to dollars
+                const quantities = data.map(item => item.quantity);
 
-                    // Create gradient
-                    const gradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'rgba(33, 150, 243, 0.8)' },
-                        { offset: 1, color: 'rgba(0, 188, 212, 0.2)' }
-                    ]);
-
-                    // Configure chart options
-                    const option = {
-                        backgroundColor: 'transparent',
-                        title: {
-                            text: 'Sales Analytics',
-                            textStyle: {
-                                color: '#fff',
-                                fontSize: 20,
-                                fontFamily: "'Space Grotesk', sans-serif"
-                            }
-                        },
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: {
-                                type: 'cross',
-                                label: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    color: '#fff'
-                                }
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            borderColor: 'rgba(33, 150, 243, 0.3)',
-                            borderWidth: 1,
-                            textStyle: {
-                                color: '#fff',
-                                fontFamily: "'Space Grotesk', sans-serif"
-                            }
-                        },
-                        legend: {
-                            data: ['Sales Amount', 'Quantity Sold'],
-                            textStyle: {
-                                color: '#fff',
-                                fontFamily: "'Space Grotesk', sans-serif"
-                            }
-                        },
-                        grid: {
-                            left: '3%',
-                            right: '4%',
-                            bottom: '3%',
-                            containLabel: true
-                        },
-                        xAxis: {
-                            type: 'category',
-                            boundaryGap: false,
-                            data: dates,
+                // Chart options
+                const option = {
+                    title: {
+                        text: `Sales Data for ${selectedCategory.category_name}`,
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross'
+                        }
+                    },
+                    legend: {
+                        data: ['Sales', 'Quantity'],
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: dates,
+                        axisLabel: {
+                            color: '#fff'
+                        }
+                    },
+                    yAxis: [
+                        {
+                            type: 'value',
+                            name: 'Sales ($)',
                             axisLabel: {
-                                color: 'rgba(255, 255, 255, 0.7)',
-                                fontFamily: "'Space Grotesk', sans-serif"
-                            },
-                            axisLine: {
-                                lineStyle: {
-                                    color: 'rgba(255, 255, 255, 0.2)'
-                                }
+                                color: '#fff',
+                                formatter: '${value}'
                             }
                         },
-                        yAxis: [
-                            {
-                                type: 'value',
-                                name: 'Sales Amount ($)',
-                                position: 'left',
-                                axisLabel: {
-                                    color: 'rgba(255, 255, 255, 0.7)',
-                                    fontFamily: "'Space Grotesk', sans-serif",
-                                    formatter: value => '$' + value.toLocaleString()
-                                },
-                                axisLine: {
-                                    lineStyle: {
-                                        color: 'rgba(255, 255, 255, 0.2)'
-                                    }
-                                },
-                                axisLine: {
-                                    lineStyle: {
-                                        color: 'rgba(255, 255, 255, 0.2)'
-                                    }
-                                },
-                                splitLine: {
-                                    lineStyle: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                }
-                            },
-                            {
-                                type: 'value',
-                                name: 'Quantity',
-                                position: 'right',
-                                axisLabel: {
-                                    color: 'rgba(255, 255, 255, 0.7)',
-                                    fontFamily: "'Space Grotesk', sans-serif"
-                                },
-                                axisLine: {
-                                    lineStyle: {
-                                        color: 'rgba(255, 255, 255, 0.2)'
-                                    }
-                                },
-                                splitLine: {
-                                    show: false
-                                }
+                        {
+                            type: 'value',
+                            name: 'Quantity',
+                            axisLabel: {
+                                color: '#fff'
                             }
-                        ],
-                        series: [
-                            {
-                                name: 'Sales Amount',
-                                type: 'line',
-                                smooth: true,
-                                data: sales,
-                                itemStyle: {
-                                    color: '#2196f3'
-                                },
-                                areaStyle: {
-                                    color: gradient
-                                },
-                                lineStyle: {
-                                    width: 3
-                                },
-                                symbol: 'circle',
-                                symbolSize: 8,
-                                emphasis: {
-                                    focus: 'series',
-                                    itemStyle: {
-                                        color: '#fff',
-                                        borderColor: '#2196f3',
-                                        borderWidth: 2
-                                    }
-                                }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: 'Sales',
+                            type: 'line',
+                            smooth: true,
+                            data: sales,
+                            itemStyle: {
+                                color: '#2196f3'
                             },
-                            {
-                                name: 'Quantity Sold',
-                                type: 'line',
-                                smooth: true,
-                                yAxisIndex: 1,
-                                data: quantities,
-                                itemStyle: {
-                                    color: '#00bcd4'
-                                },
-                                lineStyle: {
-                                    width: 3,
-                                    type: 'dashed'
-                                },
-                                symbol: 'circle',
-                                symbolSize: 8,
-                                emphasis: {
-                                    focus: 'series',
-                                    itemStyle: {
-                                        color: '#fff',
-                                        borderColor: '#00bcd4',
-                                        borderWidth: 2
-                                    }
-                                }
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'rgba(33, 150, 243, 0.5)' },
+                                    { offset: 1, color: 'rgba(33, 150, 243, 0.1)' }
+                                ])
                             }
-                        ]
-                    };
+                        },
+                        {
+                            name: 'Quantity',
+                            type: 'line',
+                            smooth: true,
+                            yAxisIndex: 1,
+                            data: quantities,
+                            itemStyle: {
+                                color: '#00bcd4'
+                            },
+                            areaStyle: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: 'rgba(0, 188, 212, 0.5)' },
+                                    { offset: 1, color: 'rgba(0, 188, 212, 0.1)' }
+                                ])
+                            }
+                        }
+                    ]
+                };
 
-                    // Set chart options
-                    salesChart.setOption(option);
+                salesChart.setOption(option);
 
-                    // Handle window resize
-                    window.addEventListener('resize', () => {
-                        salesChart.resize();
-                    });
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    salesChart.resize();
                 });
+            })
+            .catch(error => {
+                console.error('Error updating chart:', error);
+            });
         }
-
-        // Initialize dropdown handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            const triggers = document.querySelectorAll('.chart-section .custom-select-trigger');
-            
-            triggers.forEach(trigger => {
-                trigger.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const container = this.parentElement;
-                    container.classList.toggle('open');
-                });
-            });
-
-            document.addEventListener('click', function(e) {
-                triggers.forEach(trigger => {
-                    const container = trigger.parentElement;
-                    if (!container.contains(e.target)) {
-                        container.classList.remove('open');
-                    }
-                });
-            });
-        });
     </script>
 </body>
 </html> 

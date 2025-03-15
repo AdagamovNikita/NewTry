@@ -266,15 +266,8 @@ def get_chart_filters():
             ORDER BY category_name
         ''').fetchall()
         
-        brands = conn.execute('''
-            SELECT DISTINCT brand_name 
-            FROM Product 
-            ORDER BY brand_name
-        ''').fetchall()
-        
         return jsonify({
-            'categories': [dict(row) for row in categories],
-            'brands': [{'brand_name': row['brand_name']} for row in brands]
+            'categories': [dict(row) for row in categories]
         })
     except Exception as e:
         print(f"Error: {e}")
@@ -287,10 +280,9 @@ def get_chart_filters():
 def get_sales_data():
     try:
         category_id = request.form.get('category_id')
-        brand_name = request.form.get('brand_name')
         
-        if not category_id or not brand_name:
-            return jsonify({"error": "Both category and brand are required"})
+        if not category_id:
+            return jsonify({"error": "Category is required"})
         
         conn = get_db_connection()
         if not conn:
@@ -308,14 +300,14 @@ def get_sales_data():
                 JOIN Product p ON po.product_PO_id = p.product_id
                 JOIN ProductCategory pc ON p.category_P_id = pc.category_id
             WHERE 
-                pc.category_id = ? AND p.brand_name = ?
+                pc.category_id = ?
             GROUP BY 
                 s.sale_date
             ORDER BY 
                 s.sale_date
         '''
         
-        results = conn.execute(query, [category_id, brand_name]).fetchall()
+        results = conn.execute(query, [category_id]).fetchall()
         return jsonify([{
             'date': row['sale_date'],
             'quantity': row['total_quantity'],

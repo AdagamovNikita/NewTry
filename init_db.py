@@ -177,50 +177,89 @@ def init_db():
         sales = []
         current_date = datetime.now()
         start_date = current_date - timedelta(days=365)
-        for i in range(100):
+        
+        # Generate more varied sales data
+        for i in range(500):  # Increased number of sales
             random_days = random.randint(0, 365)
             sale_date = start_date + timedelta(days=random_days)
             sale_source = random.choice(['Online', 'Store'])
             promo_code = random.choice(['WELCOME10', None])
             sale_tax_rate = 20
-            total_price_without_vat = random.choice([10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000])
+            
+            # More realistic price ranges based on product categories
+            total_price_without_vat = random.randint(15000, 200000)
             vat_paid = total_price_without_vat * sale_tax_rate // 100
             total_price_with_vat = total_price_without_vat + vat_paid
             sales.append((sale_date, sale_source, promo_code, sale_tax_rate, total_price_without_vat, vat_paid, total_price_with_vat))
 
-        
 
 
+        # Store product information in a more readable format
+        # Each product has: (barcode, min_quantity, max_quantity, price in cents)
         sale_items_data = [
-            ('APP15P-256', 54, 99900),    
-            ('SAM-S24U', 32, 89900),      
-            ('APP-MBP16', 72, 199900),    
-            ('DEL-XPS15', 23, 179900),     
-            ('LEN-X1C', 12, 149900),       
-            ('SON-XP1V', 21, 94900),       
-            ('APP-IPAD12', 13, 99900),     
-            ('SAM-TABS9', 34, 79900),      
-            ('APP-WATCH9', 45, 39900),     
-            ('SAM-WATCH6', 32, 29900),     
-            ('SAM-BUDSP', 45, 19900),      
-            ('SON-WH1000', 54, 29900),     
-            ('SON-WF1000', 18, 19900)      
+            # Smartphones
+            ('APP15P-256', 1, 10, 99900),
+            ('APP15-128', 1, 12, 79900),
+            ('SAM-S24U', 1, 8, 89900),
+            ('SON-XP1V', 1, 6, 94900),
+            
+            # Laptops
+            ('APP-MBP16', 1, 5, 199900),
+            ('DEL-XPS15', 1, 7, 179900),
+            ('LEN-X1C', 1, 6, 149900),
+            ('SAM-BOOK4', 1, 4, 149900),
+            
+            # Tablets
+            ('APP-IPAD12', 1, 8, 99900),
+            ('SAM-TABS9', 1, 10, 79900),
+            ('LEN-TABP12', 1, 7, 84900),
+            
+            # Smartwatches
+            ('APP-WATCH9', 1, 15, 39900),
+            ('SAM-WATCH6', 1, 12, 29900),
+            
+            # Accessories
+            ('SAM-BUDSP', 1, 20, 19900),
+            ('SON-WH1000', 1, 18, 29900),
+            ('SON-WF1000', 1, 25, 19900)
         ]
-        
 
-
+        # For each sale in our sales list
         for sale in sales:
+            # First, add the main sale information to the database
             cursor.execute('''
-                INSERT INTO Sale (sale_date, source_name, code_S_id, tax_rate, 
+                INSERT INTO Sale (sale_date, source_name, code_S_id, tax_rate,
                                 total_price_without_vat, vat_paid, total_price_with_vat)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', sale)
+            
+            # Get the ID of the sale we just created
             sale_id = cursor.lastrowid
-            for barcode, quantity, price in sale_items_data:
+            
+            # Choose a random number of items (between 1 and 4) for this sale
+            num_items = random.randint(1, 4)
+            
+            # Randomly select that many different products
+            items_for_this_sale = random.sample(sale_items_data, num_items)
+            
+            # Add each selected item to the sale
+            for item in items_for_this_sale:
+                # Unpack the item information
+                barcode = item[0]
+                min_quantity = item[1]
+                max_quantity = item[2]
+                price = item[3]
+                
+                # Generate random quantity based on the min and max values
+                quantity = random.randint(min_quantity, max_quantity)
+                
+                # Add this item to the SaleItem table
                 cursor.execute('''
                     INSERT INTO SaleItem (sale_SI_id, barcode_SI_id, quantity_sold, price_sold_without_vat)
                     VALUES (?, ?, ?, ?)
                 ''', (sale_id, barcode, quantity, price))
+
+        # Save all changes to the database
         conn.commit()
 
 
