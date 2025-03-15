@@ -253,5 +253,80 @@ def category_details():
 
 
 
+@app.route('/api/chart-filters')
+def get_chart_filters():
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"error": "Sorry, there is a server problem :("})
+        
+        categories = conn.execute('''
+            SELECT category_id, category_name 
+            FROM ProductCategory 
+            ORDER BY category_name
+        ''').fetchall()
+        
+        brands = conn.execute('''
+            SELECT DISTINCT brand_name 
+            FROM Product 
+            ORDER BY brand_name
+        ''').fetchall()
+        
+        return jsonify({
+            'categories': [dict(row) for row in categories],
+            'brands': [{'brand_name': row['brand_name']} for row in brands]
+        })
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "Sorry, there is a server problem :("})
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/sales-data', methods=['POST'])
+def get_sales_data():
+    try:
+        category_id = request.form.get('category_id')
+        brand_name = request.form.get('brand_name')
+        
+        if not category_id or not brand_name:
+            return jsonify({"error": "Both category and brand are required"})
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"error": "Sorry, there is a server problem :("})
+        
+        query = '''
+            SELECT 
+                s.sale_date,
+                SUM(si.quantity_sold) AS total_quantity,
+                SUM(si.price_sold_without_vat) AS total_sales
+            FROM 
+                SaleItem si
+                JOIN Sale s ON si.sale_SI_id = s.sale_id
+                JOIN ProductOption po ON si.barcode_SI_id = po.barcode_id
+                JOIN Product p ON po.product_PO_id = p.product_id
+                JOIN ProductCategory pc ON p.category_P_id = pc.category_id
+            WHERE 
+                pc.category_id = ? AND p.brand_name = ?
+            GROUP BY 
+                s.sale_date
+            ORDER BY 
+                s.sale_date
+        '''
+        
+        results = conn.execute(query, [category_id, brand_name]).fetchall()
+        return jsonify([{
+            'date': row['sale_date'],
+            'quantity': row['total_quantity'],
+            'sales': row['total_sales']
+        } for row in results])
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "Sorry, there is a server problem :("})
+    finally:
+        if conn:
+            conn.close()
+
 if __name__ == '__main__':
     app.run(debug=True) 

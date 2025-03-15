@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import time
 random.seed(time.time()) #I need it to set different colors for items in my database.
@@ -175,8 +175,11 @@ def init_db():
 
 
         sales = []
+        current_date = datetime.now()
+        start_date = current_date - timedelta(days=365)
         for i in range(100):
-            sale_date = datetime.now()
+            random_days = random.randint(0, 365)
+            sale_date = start_date + timedelta(days=random_days)
             sale_source = random.choice(['Online', 'Store'])
             promo_code = random.choice(['WELCOME10', None])
             sale_tax_rate = 20
@@ -184,6 +187,7 @@ def init_db():
             vat_paid = total_price_without_vat * sale_tax_rate // 100
             total_price_with_vat = total_price_without_vat + vat_paid
             sales.append((sale_date, sale_source, promo_code, sale_tax_rate, total_price_without_vat, vat_paid, total_price_with_vat))
+
         
 
 

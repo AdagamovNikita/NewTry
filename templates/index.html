@@ -600,6 +600,123 @@
         select {
             display: none;
         }
+
+        .chart-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--neon-shadow);
+            position: relative;
+            overflow: visible;
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .chart-controls {
+            position: relative;
+            z-index: 1000;
+            margin-bottom: 2rem;
+        }
+
+        .chart-controls h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #2196f3, #00bcd4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .chart-container {
+            position: relative;
+            z-index: 1;
+            height: 400px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.2);
+        }
+
+        .chart-container canvas {
+            border-radius: 15px;
+        }
+
+        /* Enhanced select styles for chart filters */
+        .chart-section .custom-select-container {
+            position: relative;
+            z-index: 1001;
+        }
+
+        .chart-section .custom-select-container.open {
+            z-index: 1002;
+        }
+
+        .chart-section .custom-select-options {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: linear-gradient(165deg, 
+                rgba(11, 28, 72, 0.98), 
+                rgba(33, 150, 243, 0.15)
+            );
+            border: 1px solid rgba(33, 150, 243, 0.4);
+            border-radius: 20px;
+            padding: 10px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 
+                0 0 30px rgba(33, 150, 243, 0.3),
+                inset 0 0 20px rgba(33, 150, 243, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1003;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chart-section .custom-select-container.open .custom-select-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .chart-section .custom-select-option {
+            position: relative;
+            z-index: 1004;
+        }
     </style>
 </head>
 <body>
@@ -658,6 +775,33 @@
                 <div class="summary" id="revenue-summary"></div>
             </div>
         </div>
+
+        <div class="chart-section">
+            <div class="chart-controls">
+                <h2>Sales Analytics</h2>
+                <div class="filters">
+                    <form class="chart-filters-form">
+                        <div class="custom-select-container">
+                            <div class="custom-select-trigger" id="category-trigger">Select a category</div>
+                            <div class="custom-select-options" id="category-options"></div>
+                            <select name="category" required style="display: none;">
+                                <option value="">Select a category</option>
+                            </select>
+                        </div>
+                        <div class="custom-select-container">
+                            <div class="custom-select-trigger" id="brand-trigger">Select a brand</div>
+                            <div class="custom-select-options" id="brand-options"></div>
+                            <select name="brand" required style="display: none;">
+                                <option value="">Select a brand</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <!-- Product Details Modal -->
@@ -707,6 +851,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Add ECharts library -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Add Luxon for better date handling -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2/build/global/luxon.min.js"></script>
 
     <script>
         // Function to format currency
@@ -942,6 +1091,298 @@
                     
                     // Update hidden select value
                     hiddenSelect.selectedIndex = index + 1; // +1 because of the placeholder option
+                });
+            });
+        });
+    </script>
+    <script>
+        // Chart initialization and data handling
+        let salesChart = null;
+        let selectedCategory = null;
+        let selectedBrand = null;
+
+        // Initialize filters
+        fetch('/api/chart-filters')
+            .then(response => response.json())
+            .then(data => {
+                const categoryOptions = document.getElementById('category-options');
+                const brandOptions = document.getElementById('brand-options');
+                const categorySelect = document.querySelector('select[name="category"]');
+                const brandSelect = document.querySelector('select[name="brand"]');
+
+                // Populate categories
+                data.categories.forEach((category, index) => {
+                    const option = document.createElement('div');
+                    option.className = 'custom-select-option';
+                    option.textContent = category.category_name;
+                    option.dataset.id = category.category_id;
+                    option.style.setProperty('--option-index', index);
+                    option.onclick = () => selectCategory(category);
+                    categoryOptions.appendChild(option);
+
+                    // Add option to hidden select
+                    const selectOption = document.createElement('option');
+                    selectOption.value = category.category_id;
+                    selectOption.textContent = category.category_name;
+                    categorySelect.appendChild(selectOption);
+                });
+
+                // Populate brands
+                data.brands.forEach((brand, index) => {
+                    const option = document.createElement('div');
+                    option.className = 'custom-select-option';
+                    option.textContent = brand.brand_name;
+                    option.style.setProperty('--option-index', index);
+                    option.onclick = () => selectBrand(brand);
+                    brandOptions.appendChild(option);
+
+                    // Add option to hidden select
+                    const selectOption = document.createElement('option');
+                    selectOption.value = brand.brand_name;
+                    selectOption.textContent = brand.brand_name;
+                    brandSelect.appendChild(selectOption);
+                });
+            });
+
+        // Category selection handler
+        function selectCategory(category) {
+            selectedCategory = category;
+            const trigger = document.getElementById('category-trigger');
+            const select = document.querySelector('select[name="category"]');
+            trigger.textContent = category.category_name;
+            select.value = category.category_id;
+            trigger.parentElement.classList.remove('open');
+            updateChart();
+        }
+
+        // Brand selection handler
+        function selectBrand(brand) {
+            selectedBrand = brand;
+            const trigger = document.getElementById('brand-trigger');
+            const select = document.querySelector('select[name="brand"]');
+            trigger.textContent = brand.brand_name;
+            select.value = brand.brand_name;
+            trigger.parentElement.classList.remove('open');
+            updateChart();
+        }
+
+        // Chart update function
+        function updateChart() {
+            if (!selectedCategory || !selectedBrand) return;
+
+            const formData = new FormData();
+            formData.append('category_id', selectedCategory.category_id);
+            formData.append('brand_name', selectedBrand.brand_name);
+
+            fetch('/api/sales-data', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    const chartDom = document.getElementById('salesChart');
+                    
+                    // Initialize ECharts instance
+                    if (!salesChart) {
+                        salesChart = echarts.init(chartDom);
+                    }
+
+                    // Prepare data
+                    const dates = data.map(item => item.date);
+                    const sales = data.map(item => item.sales / 100); // Convert cents to dollars
+                    const quantities = data.map(item => item.quantity);
+
+                    // Create gradient
+                    const gradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(33, 150, 243, 0.8)' },
+                        { offset: 1, color: 'rgba(0, 188, 212, 0.2)' }
+                    ]);
+
+                    // Configure chart options
+                    const option = {
+                        backgroundColor: 'transparent',
+                        title: {
+                            text: 'Sales Analytics',
+                            textStyle: {
+                                color: '#fff',
+                                fontSize: 20,
+                                fontFamily: "'Space Grotesk', sans-serif"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross',
+                                label: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    color: '#fff'
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            borderColor: 'rgba(33, 150, 243, 0.3)',
+                            borderWidth: 1,
+                            textStyle: {
+                                color: '#fff',
+                                fontFamily: "'Space Grotesk', sans-serif"
+                            }
+                        },
+                        legend: {
+                            data: ['Sales Amount', 'Quantity Sold'],
+                            textStyle: {
+                                color: '#fff',
+                                fontFamily: "'Space Grotesk', sans-serif"
+                            }
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: dates,
+                            axisLabel: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                fontFamily: "'Space Grotesk', sans-serif"
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(255, 255, 255, 0.2)'
+                                }
+                            }
+                        },
+                        yAxis: [
+                            {
+                                type: 'value',
+                                name: 'Sales Amount ($)',
+                                position: 'left',
+                                axisLabel: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontFamily: "'Space Grotesk', sans-serif",
+                                    formatter: value => '$' + value.toLocaleString()
+                                },
+                                axisLine: {
+                                    lineStyle: {
+                                        color: 'rgba(255, 255, 255, 0.2)'
+                                    }
+                                },
+                                axisLine: {
+                                    lineStyle: {
+                                        color: 'rgba(255, 255, 255, 0.2)'
+                                    }
+                                },
+                                splitLine: {
+                                    lineStyle: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            },
+                            {
+                                type: 'value',
+                                name: 'Quantity',
+                                position: 'right',
+                                axisLabel: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontFamily: "'Space Grotesk', sans-serif"
+                                },
+                                axisLine: {
+                                    lineStyle: {
+                                        color: 'rgba(255, 255, 255, 0.2)'
+                                    }
+                                },
+                                splitLine: {
+                                    show: false
+                                }
+                            }
+                        ],
+                        series: [
+                            {
+                                name: 'Sales Amount',
+                                type: 'line',
+                                smooth: true,
+                                data: sales,
+                                itemStyle: {
+                                    color: '#2196f3'
+                                },
+                                areaStyle: {
+                                    color: gradient
+                                },
+                                lineStyle: {
+                                    width: 3
+                                },
+                                symbol: 'circle',
+                                symbolSize: 8,
+                                emphasis: {
+                                    focus: 'series',
+                                    itemStyle: {
+                                        color: '#fff',
+                                        borderColor: '#2196f3',
+                                        borderWidth: 2
+                                    }
+                                }
+                            },
+                            {
+                                name: 'Quantity Sold',
+                                type: 'line',
+                                smooth: true,
+                                yAxisIndex: 1,
+                                data: quantities,
+                                itemStyle: {
+                                    color: '#00bcd4'
+                                },
+                                lineStyle: {
+                                    width: 3,
+                                    type: 'dashed'
+                                },
+                                symbol: 'circle',
+                                symbolSize: 8,
+                                emphasis: {
+                                    focus: 'series',
+                                    itemStyle: {
+                                        color: '#fff',
+                                        borderColor: '#00bcd4',
+                                        borderWidth: 2
+                                    }
+                                }
+                            }
+                        ]
+                    };
+
+                    // Set chart options
+                    salesChart.setOption(option);
+
+                    // Handle window resize
+                    window.addEventListener('resize', () => {
+                        salesChart.resize();
+                    });
+                });
+        }
+
+        // Initialize dropdown handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const triggers = document.querySelectorAll('.chart-section .custom-select-trigger');
+            
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const container = this.parentElement;
+                    container.classList.toggle('open');
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                triggers.forEach(trigger => {
+                    const container = trigger.parentElement;
+                    if (!container.contains(e.target)) {
+                        container.classList.remove('open');
+                    }
                 });
             });
         });
