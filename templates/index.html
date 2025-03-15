@@ -602,72 +602,63 @@
         }
 
         .chart-section {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-top: 2rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--neon-shadow);
+            background: linear-gradient(165deg, rgba(11, 28, 72, 0.8), rgba(33, 150, 243, 0.1));
+            border: 2px solid rgba(33, 150, 243, 0.3);
+            border-radius: 30px;
+            padding: 3rem;
+            margin-top: 3rem;
+            box-shadow: 0 0 40px rgba(33, 150, 243, 0.2);
             position: relative;
             overflow: visible;
         }
 
-        .chart-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at center, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-            z-index: 0;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .chart-controls {
-            position: relative;
-            z-index: 1000;
-            margin-bottom: 2rem;
-        }
-
-        .chart-controls h2 {
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(45deg, #2196f3, #00bcd4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-align: center;
-        }
-
-        .filters {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-bottom: 2rem;
-            position: relative;
-            z-index: 1000;
+        .chart-section:hover {
+            box-shadow: 0 0 60px rgba(33, 150, 243, 0.3);
+            border-color: rgba(33, 150, 243, 0.5);
         }
 
         .chart-container {
             position: relative;
             z-index: 1;
-            height: 400px;
-            padding: 1rem;
+            height: 500px;
+            padding: 2rem;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(33, 150, 243, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(33, 150, 243, 0.2);
+        }
+
+        .chart-container:hover {
+            box-shadow: 0 0 40px rgba(33, 150, 243, 0.3);
+        }
+
+        #salesChart {
+            width: 100% !important;
+            height: 100% !important;
+            transform: none !important;
+            transition: none !important;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            perspective: none;
+            -webkit-perspective: none;
+            -moz-perspective: none;
+            transform-style: flat;
+            -webkit-transform-style: flat;
+            -moz-transform-style: flat;
         }
 
         .chart-container canvas {
-            border-radius: 15px;
+            transform: none !important;
+            transition: none !important;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            perspective: none;
+            -webkit-perspective: none;
+            -moz-perspective: none;
+            transform-style: flat;
+            -webkit-transform-style: flat;
+            -moz-transform-style: flat;
         }
 
         /* Enhanced select styles for chart filters */
@@ -1180,45 +1171,142 @@
 
                 // Chart options
                 const option = {
+                    backgroundColor: 'transparent',
                     title: {
                         text: `Sales Data for ${selectedCategory.category_name}`,
                         textStyle: {
-                            color: '#fff'
-                        }
+                            color: '#fff',
+                            fontSize: 20,
+                            fontWeight: 'normal',
+                            fontFamily: 'Space Grotesk',
+                            textShadow: '0 0 10px rgba(33, 150, 243, 0.5)'
+                        },
+                        left: 'center',
+                        top: 20
                     },
                     tooltip: {
                         trigger: 'axis',
                         axisPointer: {
-                            type: 'cross'
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#2196f3'
+                            },
+                            lineStyle: {
+                                color: 'rgba(33, 150, 243, 0.5)',
+                                width: 2
+                            },
+                            crossStyle: {
+                                color: 'rgba(33, 150, 243, 0.5)',
+                                width: 2
+                            }
+                        },
+                        backgroundColor: 'rgba(11, 28, 72, 0.9)',
+                        borderColor: 'rgba(33, 150, 243, 0.3)',
+                        borderWidth: 2,
+                        padding: 15,
+                        textStyle: {
+                            color: '#fff',
+                            fontFamily: 'Space Grotesk'
                         }
                     },
                     legend: {
                         data: ['Sales', 'Quantity'],
                         textStyle: {
-                            color: '#fff'
-                        }
+                            color: '#fff',
+                            fontFamily: 'Space Grotesk'
+                        },
+                        icon: 'roundRect',
+                        itemWidth: 30,
+                        itemHeight: 4,
+                        itemGap: 20,
+                        top: 20,
+                        right: 20
+                    },
+                    grid: {
+                        left: '5%',
+                        right: '5%',
+                        bottom: '8%',
+                        top: '15%',
+                        containLabel: true
                     },
                     xAxis: {
                         type: 'category',
                         data: dates,
+                        boundaryGap: false,
                         axisLabel: {
-                            color: '#fff'
+                            color: '#fff',
+                            fontFamily: 'Space Grotesk',
+                            fontSize: 12,
+                            rotate: 45
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: 'rgba(33, 150, 243, 0.3)'
+                            }
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: 'rgba(33, 150, 243, 0.1)',
+                                type: 'dashed'
+                            }
                         }
                     },
                     yAxis: [
                         {
                             type: 'value',
                             name: 'Sales ($)',
+                            nameTextStyle: {
+                                color: '#fff',
+                                fontFamily: 'Space Grotesk',
+                                fontSize: 14,
+                                padding: [0, 0, 0, 50]
+                            },
                             axisLabel: {
                                 color: '#fff',
+                                fontFamily: 'Space Grotesk',
                                 formatter: '${value}'
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(33, 150, 243, 0.3)'
+                                }
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(33, 150, 243, 0.3)'
+                                }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: 'rgba(33, 150, 243, 0.1)',
+                                    type: 'dashed'
+                                }
                             }
                         },
                         {
                             type: 'value',
                             name: 'Quantity',
+                            nameTextStyle: {
+                                color: '#fff',
+                                fontFamily: 'Space Grotesk',
+                                fontSize: 14,
+                                padding: [0, 50, 0, 0]
+                            },
                             axisLabel: {
-                                color: '#fff'
+                                color: '#fff',
+                                fontFamily: 'Space Grotesk'
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(33, 150, 243, 0.3)'
+                                }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: 'rgba(33, 150, 243, 0.1)',
+                                    type: 'dashed'
+                                }
                             }
                         }
                     ],
@@ -1227,34 +1315,84 @@
                             name: 'Sales',
                             type: 'line',
                             smooth: true,
+                            symbolSize: 8,
                             data: sales,
                             itemStyle: {
-                                color: '#2196f3'
+                                color: '#2196f3',
+                                borderColor: '#fff',
+                                borderWidth: 2,
+                                shadowColor: 'rgba(33, 150, 243, 0.5)',
+                                shadowBlur: 10
+                            },
+                            lineStyle: {
+                                width: 4,
+                                shadowColor: 'rgba(33, 150, 243, 0.5)',
+                                shadowBlur: 10
                             },
                             areaStyle: {
                                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                                     { offset: 0, color: 'rgba(33, 150, 243, 0.5)' },
-                                    { offset: 1, color: 'rgba(33, 150, 243, 0.1)' }
-                                ])
-                            }
+                                    { offset: 0.5, color: 'rgba(33, 150, 243, 0.2)' },
+                                    { offset: 1, color: 'rgba(33, 150, 243, 0.05)' }
+                                ]),
+                                shadowColor: 'rgba(33, 150, 243, 0.2)',
+                                shadowBlur: 20
+                            },
+                            emphasis: {
+                                itemStyle: {
+                                    borderWidth: 3,
+                                    shadowBlur: 20
+                                }
+                            },
+                            animationDuration: 2000,
+                            animationEasing: 'cubicInOut'
                         },
                         {
                             name: 'Quantity',
                             type: 'line',
                             smooth: true,
+                            symbolSize: 8,
                             yAxisIndex: 1,
                             data: quantities,
                             itemStyle: {
-                                color: '#00bcd4'
+                                color: '#00bcd4',
+                                borderColor: '#fff',
+                                borderWidth: 2,
+                                shadowColor: 'rgba(0, 188, 212, 0.5)',
+                                shadowBlur: 10
+                            },
+                            lineStyle: {
+                                width: 4,
+                                shadowColor: 'rgba(0, 188, 212, 0.5)',
+                                shadowBlur: 10
                             },
                             areaStyle: {
                                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                                     { offset: 0, color: 'rgba(0, 188, 212, 0.5)' },
-                                    { offset: 1, color: 'rgba(0, 188, 212, 0.1)' }
-                                ])
-                            }
+                                    { offset: 0.5, color: 'rgba(0, 188, 212, 0.2)' },
+                                    { offset: 1, color: 'rgba(0, 188, 212, 0.05)' }
+                                ]),
+                                shadowColor: 'rgba(0, 188, 212, 0.2)',
+                                shadowBlur: 20
+                            },
+                            emphasis: {
+                                itemStyle: {
+                                    borderWidth: 3,
+                                    shadowBlur: 20
+                                }
+                            },
+                            animationDuration: 2000,
+                            animationEasing: 'cubicInOut',
+                            animationDelay: 300
                         }
-                    ]
+                    ],
+                    animation: true,
+                    animationThreshold: 2000,
+                    animationDuration: 2000,
+                    animationEasing: 'cubicInOut',
+                    animationDelay: function (idx) {
+                        return idx * 200;
+                    }
                 };
 
                 salesChart.setOption(option);
