@@ -39,7 +39,7 @@ def search_brand():
     try:
         brand = request.form.get('brand')
         if not brand:
-            return redirect(url_for('index')) #I know nothing about websites, so it is also new for me. It will redirect the user to the main page if the brand is empty.
+            return redirect(url_for('index')) #I know nothing about websites, so it was also new for me. It will redirect the user to the main page if the brand is empty.
         conn = get_db_connection()
         if not conn:
             return jsonify({"error": "Sorry, there is a server problem :("})
@@ -52,8 +52,8 @@ def search_brand():
                 po.quantity AS Quantity,
                 po.wholesale_price AS WholesalePrice,
                 po.sale_price AS SalePrice,
-                ph.new_price AS NewPrice,
-                ph.change_date AS ChangeDate,
+                '-' AS NewPrice,
+                '-' AS ChangeDate,
                 MAX(pc.code_id) AS PromoCode
             FROM 
                 Product p
@@ -61,8 +61,6 @@ def search_brand():
                 ProductOption po ON p.product_id = po.product_PO_id
             LEFT JOIN 
                 ProductAttribute pa ON po.barcode_id = pa.barcode_PA_id
-            LEFT JOIN 
-                PriceHistory ph ON po.barcode_id = ph.barcode_PH_id
             LEFT JOIN
                 SaleItem si ON po.barcode_id = si.barcode_SI_id
             LEFT JOIN 
@@ -72,7 +70,7 @@ def search_brand():
             WHERE p.brand_name = ?
             GROUP BY 
                 p.brand_name, p.model, pa.attribute_name, pa.attribute_value, po.quantity, 
-                po.wholesale_price, po.sale_price, ph.new_price, ph.change_date
+                po.wholesale_price, po.sale_price
             ORDER BY 
                 p.brand_name, p.model
         ''', (brand,)).fetchall()

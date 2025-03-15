@@ -255,8 +255,8 @@
                         <td>{{ result.Quantity }}</td>
                         <td>${{ "%.2f"|format(result.WholesalePrice/100) }}</td>
                         <td>${{ "%.2f"|format(result.SalePrice/100) }}</td>
-                        <td>${{ "%.2f"|format(result.NewPrice/100) if result.NewPrice else '-' }}</td>
-                        <td>{{ result.ChangeDate if result.ChangeDate else '-' }}</td>
+                        <td>{{ result.NewPrice }}</td>
+                        <td>{{ result.ChangeDate }}</td>
                         <td>{{ result.PromoCode if result.PromoCode else '-' }}</td>
                     </tr>
                     {% endfor %}
