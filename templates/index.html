@@ -1741,11 +1741,11 @@
                     isPreloaderActive = true;
                     preloader.classList.add('active');
                     
-                    // Simulate loading time
+                    // Show preloader for 8 seconds
                     setTimeout(() => {
                         preloader.classList.remove('active');
                         isPreloaderActive = false;
-                    }, 3000); // Show for 3 seconds
+                    }, 8000); // Changed from 3000 to 8000 milliseconds
                 }
             });
 
