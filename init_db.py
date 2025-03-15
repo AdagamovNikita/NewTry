@@ -174,11 +174,16 @@ def init_db():
 
 
 
-        sales = [
-            (datetime.now(), 'Online', 'SUMMER2024', 20, 100000, 20000, 120000),
-            (datetime.now(), 'Store', 'WELCOME10', 20, 150000, 30000, 180000),
-            (datetime.now(), 'Online', None, 20, 80000, 16000, 96000)
-        ]
+        sales = []
+        for i in range(100):
+            sale_date = datetime.now()
+            sale_source = random.choice(['Online', 'Store'])
+            promo_code = random.choice(['WELCOME10', None])
+            sale_tax_rate = 20
+            total_price_without_vat = random.choice([10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000])
+            vat_paid = total_price_without_vat * sale_tax_rate // 100
+            total_price_with_vat = total_price_without_vat + vat_paid
+            sales.append((sale_date, sale_source, promo_code, sale_tax_rate, total_price_without_vat, vat_paid, total_price_with_vat))
         
 
 
